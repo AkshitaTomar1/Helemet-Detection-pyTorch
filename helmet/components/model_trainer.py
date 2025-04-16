@@ -128,6 +128,8 @@ class ModelTrainer:
                 self.train(model, optimiser, train_loader, self.model_trainer_config.DEVICE, epoch)
 
             os.makedirs(self.model_trainer_config.TRAINED_MODEL_DIR, exist_ok=True)
+            print("Model will be saved to:", self.model_trainer_config.TRAINED_MODEL_PATH)
+
             torch.save(model, self.model_trainer_config.TRAINED_MODEL_PATH)
 
             logging.info(f"Saved the trained model")
@@ -141,6 +143,7 @@ class ModelTrainer:
 
         except Exception as e:
             raise HelmetException(e, sys) from e
+
 
 
 

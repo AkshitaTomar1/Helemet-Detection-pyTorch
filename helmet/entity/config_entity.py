@@ -65,6 +65,8 @@ class ModelEvaluationConfig:
 class ModelPusherConfig:
     def __init__(self):
         self.TRAINED_MODEL_DIR: str = os.path.join(from_root(),ARTIFACTS_DIR,TRAINED_MODEL_DIR)
-        self.BEST_MODEL_PATH: str = os.path.join(self.TRAINED_MODEL_DIR,TRAINED_MODEL_NAME)
+        #self.BEST_MODEL_PATH: str = os.path.join(self.TRAINED_MODEL_DIR,TRAINED_MODEL_NAME)
+        self.BEST_MODEL_PATH: str = r"C:\Users\VISHU\artifacts\04_16_2025_17_31_57\TrainedModel\model.pt"
+
         self.BUCKET_NAME: str = BUCKET_NAME
         self.S3_MODEL_KEY_PATH: str = os.path.join(TRAINED_MODEL_NAME)

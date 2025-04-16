@@ -6,7 +6,7 @@ TIMESTAMP: str = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 
 # Data Ingestion Constants
 ARTIFACTS_DIR = os.path.join("artifacts", TIMESTAMP)
-BUCKET_NAME = 'helmet-object-detection'
+BUCKET_NAME = 'helmetdetection10'
 ZIP_FILE_NAME = 'data.zip'
 ANNOTATIONS_COCO_JSON_FILE = '_annotations.coco.json'
 
@@ -58,4 +58,4 @@ PREDICTION_CLASSES = ['With Helmet', 'Without Helmet']
 # AWS CONSTANTS
 AWS_ACCESS_KEY_ID_ENV_KEY = "AWS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY_ENV_KEY = "AWS_SECRET_ACCESS_KEY"
-REGION_NAME = "ap-south-1"
+REGION_NAME = "eu-north-1"
