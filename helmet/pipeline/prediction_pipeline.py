@@ -55,7 +55,8 @@ class PredictionPipeline:
     def prediction(self, best_model_path: str, image_tensor, image_int_tensor) -> float:
         logging.info("Entered the prediction method of PredictionPipeline class")
         try:
-            model = torch.load(best_model_path, map_location=torch.device(DEVICE))
+            #model = torch.load(best_model_path, map_location=torch.device(DEVICE))
+            model = torch.load('model.pt', weights_only=False)
             model.eval()
             with torch.no_grad():
                 prediction = model([image_tensor.to(DEVICE)])
