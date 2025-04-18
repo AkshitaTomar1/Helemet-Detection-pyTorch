@@ -63,6 +63,7 @@ class PredictionPipeline:
 
             bbox_tensor = draw_bounding_boxes(image_int_tensor,
                                 pred['boxes'][pred['scores'] > 0.8],
+                                
                                 [PREDICTION_CLASSES[i] for i in pred['labels'][pred['scores'] > 0.8].tolist()],
                                 width=4).permute(0, 2, 1)
 
