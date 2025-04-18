@@ -57,7 +57,8 @@ class PredictionPipeline:
         try:
             #model = torch.load(best_model_path, map_location=torch.device(DEVICE))
             #model = torch.load('model.pt', weights_only=False)
-            model=torch.load("helmet/artifacts/model.pt", map_location=torch.device('cpu'))
+            model = torch.load("helmet/artifacts/model.pt", map_location=torch.device('cpu'), weights_only=False)
+
 
             model.eval()
             with torch.no_grad():
