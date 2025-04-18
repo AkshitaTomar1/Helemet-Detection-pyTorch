@@ -6,11 +6,11 @@ import base64
 from io import BytesIO
 from torchvision import transforms
 from torchvision.utils import draw_bounding_boxes
+import torch
 from helmet.exception import HelmetException
 from helmet.logger import logging
 from helmet.configuration.s3_operations import S3Operation
 from helmet.constants import *
-
 
 class PredictionPipeline:
     def __init__(self):
@@ -21,15 +21,12 @@ class PredictionPipeline:
         """load image, returns cuda tensor"""
         logging.info("Entered the image_loader method of PredictionPipeline class")
         try:
-            # image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
             image = Image.open(io.BytesIO(image_bytes))
             convert_tensor = transforms.ToTensor()
             tensor_image = convert_tensor(image)
-            # image = image[:3]
             image_int = torch.tensor(tensor_image * 255, dtype=torch.uint8)
             logging.info("Exited the image_loader method of PredictionPipeline class")
             return tensor_image, image_int
-
         except Exception as e:
             raise HelmetException(e, sys) from e
 
@@ -37,7 +34,6 @@ class PredictionPipeline:
         """
         Method Name :   predict
         Description :   This method predicts the image.
-
         Output      :   Predictions
         """
         logging.info("Entered the get_model_from_s3 method of PredictionPipeline class")
@@ -48,40 +44,34 @@ class PredictionPipeline:
             best_model_path = self.s3.read_data_from_s3(TRAINED_MODEL_NAME, self.bucket_name, predict_model_path)
             logging.info("Exited the get_model_from_s3 method of PredictionPipeline class")
             return best_model_path
-
         except Exception as e:
             raise HelmetException(e, sys) from e
 
     def prediction(self, best_model_path: str, image_tensor, image_int_tensor) -> float:
         logging.info("Entered the prediction method of PredictionPipeline class")
         try:
-            #model = torch.load(best_model_path, map_location=torch.device(DEVICE))
-            #model = torch.load('model.pt', weights_only=False)
             model = torch.load("helmet/artifacts/model.pt", map_location=torch.device('cpu'), weights_only=False)
-
-
             model.eval()
             with torch.no_grad():
-                prediction = model([image_tensor.to(DEVICE)])
+                prediction = model([image_tensor.to(torch.device('cpu'))])
                 pred = prediction[0]
 
-            """bbox_tensor = draw_bounding_boxes(image_int_tensor,
-                                pred['boxes'][pred['scores'] > 0.8],
-                                [PREDICTION_CLASSES[i] for i in pred['labels'][pred['scores'] > 0.8].tolist()],
-                                width=4).permute(0, 2, 1)"""
-            conf_mask = pred['scores'] > 0.8
-
-            if conf_mask.sum() > 0:
+            # Handle empty predictions
+            if len(pred['boxes']) > 0:
+                conf_mask = pred['scores'] > 0.8
+                if conf_mask.sum() > 0:
                     bbox_tensor = draw_bounding_boxes(
-                    image_int_tensor,
-                    pred['boxes'][conf_mask],
+                        image_int_tensor,
+                        pred['boxes'][conf_mask],
                         [PREDICTION_CLASSES[i] for i in pred['labels'][conf_mask].tolist()],
-                            width=4
-                                ).permute(0, 2, 1)
+                        width=4
+                    ).permute(0, 2, 1)
+                else:
+                    logging.info("No predictions with confidence > 0.8")
+                    bbox_tensor = image_int_tensor  # or handle differently
             else:
-                    print("No predictions with confidence > 0.8")
-                    # Handle the case: maybe return the original image or show a warning
-                    bbox_tensor = image_int_tensor  # or whatever default
+                logging.info("No boxes found in predictions.")
+                bbox_tensor = image_int_tensor
 
             transform = transforms.ToPILImage()
             img = transform(bbox_tensor)
@@ -91,7 +81,6 @@ class PredictionPipeline:
 
             logging.info("Exited the prediction method of PredictionPipeline class")
             return img_str
-
         except Exception as e:
             raise HelmetException(e, sys) from e
 
@@ -99,12 +88,10 @@ class PredictionPipeline:
         logging.info("Entered the run_pipeline method of PredictionPipeline class")
         try:
             image, image_int = self.image_loader(data)
-            print(image.shape)
-            print(image_int.shape)
+            logging.info(f"Image Shape: {image.shape}, Image Int Shape: {image_int.shape}")
             best_model_path: str = self.get_model_from_s3()
             detected_image = self.prediction(best_model_path, image, image_int)
             logging.info("Exited the run_pipeline method of PredictionPipeline class")
             return detected_image
         except Exception as e:
             raise HelmetException(e, sys) from e
-
