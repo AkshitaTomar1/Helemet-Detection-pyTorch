@@ -65,10 +65,23 @@ class PredictionPipeline:
                 prediction = model([image_tensor.to(DEVICE)])
                 pred = prediction[0]
 
-            bbox_tensor = draw_bounding_boxes(image_int_tensor,
+            """bbox_tensor = draw_bounding_boxes(image_int_tensor,
                                 pred['boxes'][pred['scores'] > 0.8],
                                 [PREDICTION_CLASSES[i] for i in pred['labels'][pred['scores'] > 0.8].tolist()],
-                                width=4).permute(0, 2, 1)
+                                width=4).permute(0, 2, 1)"""
+            conf_mask = pred['scores'] > 0.8
+
+            if conf_mask.sum() > 0:
+                    bbox_tensor = draw_bounding_boxes(
+                    image_int_tensor,
+                    pred['boxes'][conf_mask],
+                        [PREDICTION_CLASSES[i] for i in pred['labels'][conf_mask].tolist()],
+                            width=4
+                                ).permute(0, 2, 1)
+            else:
+                    print("No predictions with confidence > 0.8")
+                    # Handle the case: maybe return the original image or show a warning
+                    bbox_tensor = image_int_tensor  # or whatever default
 
             transform = transforms.ToPILImage()
             img = transform(bbox_tensor)
